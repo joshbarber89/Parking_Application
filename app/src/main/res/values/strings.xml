@@ -1,3 +1,4 @@
 <resources>
+    <string name="google_maps_API_key">AIzaSyCtKIsg6nmuUuqisz8vO5KpRESIaO-YUdc</string>
     <string name="app_name">Parking_Application</string>
 </resources>
