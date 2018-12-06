@@ -101,8 +101,6 @@ public class GetNearbyPlaceData extends AsyncTask<Object, String, String>{
     }
     class SortByDistance implements Comparator<PlaceInfo>
     {
-        // Used for sorting in ascending order of
-        // roll number
         public int compare(PlaceInfo a, PlaceInfo b)
         {
             if (a.getDistance() < b.getDistance()) return -1;

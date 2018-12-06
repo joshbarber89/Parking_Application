@@ -13,7 +13,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -71,7 +70,7 @@ public class MapActivity extends Globals implements OnMapReadyCallback, GoogleAp
     private FusedLocationProviderClient mFusedLocationProvideClient;
 
     private AutoCompleteTextView mSearchText;
-    private ImageView mGps;
+    private ImageView mGps, mMain;
     private ListView parking;
     private PlaceAutoCompleteAdapter mPlaceAutoCompleteAdapter;
     private GoogleApiClient mGoogleApiClient;
@@ -81,10 +80,6 @@ public class MapActivity extends Globals implements OnMapReadyCallback, GoogleAp
 
     private ItemAdapter parking_places_adapter;
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
@@ -97,6 +92,7 @@ public class MapActivity extends Globals implements OnMapReadyCallback, GoogleAp
 
         mSearchText = (AutoCompleteTextView) findViewById(R.id.input_search);
         mGps = (ImageView) findViewById(R.id.ic_gps);
+        mMain = (ImageView) findViewById(R.id.main_menu);
         parking = (ListView) findViewById(R.id.parking);
 
         getLocationPermission();
@@ -159,7 +155,13 @@ public class MapActivity extends Globals implements OnMapReadyCallback, GoogleAp
                  getDeviceLocation();
             }
         });
-
+        mMain.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent main = new Intent(MapActivity.this,MainActivity.class);
+                startActivity(main);
+            }
+        });
 
         parking_places_adapter = new ItemAdapter(MapActivity.this, R.layout.custom_info_window, parking_places, getMEASUREMENT());
 
@@ -169,6 +171,8 @@ public class MapActivity extends Globals implements OnMapReadyCallback, GoogleAp
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 PlaceInfo place = parking_places.get(position);
+                setPARKING_LOCATION_LAT(place.getLatlng().latitude);
+                setPARKING_LOCATION_LNG(place.getLatlng().longitude);
                 startNavigation(place.getLatlng());
             }
         });
@@ -403,6 +407,29 @@ public class MapActivity extends Globals implements OnMapReadyCallback, GoogleAp
 
     @Override
     public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onStart(){
+        super.onStart();
+        double lat = getPARKING_LOCATION_LAT();
+        double lng = getPARKING_LOCATION_LNG();
+        if(lat > -1 && lng > -1){
+            Intent findCar = new Intent(MapActivity.this, FindCar.class);
+            startActivity(findCar);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        double lat = getPARKING_LOCATION_LAT();
+        double lng = getPARKING_LOCATION_LNG();
+        if(lat > -1 && lng > -1){
+            Intent findCar = new Intent(MapActivity.this, FindCar.class);
+            startActivity(findCar);
+        }
 
     }
 }

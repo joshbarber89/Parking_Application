@@ -10,18 +10,20 @@
     android:focusableInTouchMode="true">
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical">
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="300dp"
-            android:orientation="vertical">
+            android:layout_height="0dp"
+            android:layout_weight="0.6"
+            >
+
             <fragment xmlns:android="http://schemas.android.com/apk/res/android"
                 xmlns:tools="http://schemas.android.com/tools"
                 android:id="@+id/map"
                 android:name="com.google.android.gms.maps.SupportMapFragment"
                 android:layout_width="match_parent"
-                android:layout_height="300dp"
+                android:layout_height="match_parent"
                 tools:context="com.example.mapwithmarker.MapsMarkerActivity" />
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -63,29 +65,38 @@
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:layout_below="@id/relLayout1"
-                    android:layout_alignParentRight="true"
-                    android:layout_marginRight="10dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginEnd="10dp"
                     android:layout_marginTop="10dp"
                     android:scaleType="centerCrop"
                     android:id="@+id/ic_gps"
                     android:src="@drawable/ic_gps"/>
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_below="@id/relLayout1"
+                    android:layout_alignParentStart="true"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="10dp"
+                    android:scaleType="centerCrop"
+                    android:id="@+id/main_menu"
+                    android:src="@drawable/ic_back"/>
             </RelativeLayout>
 
         </RelativeLayout>
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="300dp"
 
-            android:orientation="vertical">
-            <ScrollView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:fillViewport="true">
+        <ScrollView
+            android:id="@+id/child_scroll"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.4"
+            android:fillViewport="true"
+            >
             <ListView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:id="@+id/parking"></ListView>
-            </ScrollView>
-        </RelativeLayout>
+        </ScrollView>
+
     </LinearLayout>
 </LinearLayout>

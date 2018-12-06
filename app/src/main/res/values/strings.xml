@@ -1,7 +1,8 @@
 <resources>
     <string name="google_maps_API_key">AIzaSyBoR8pp8rm_GwcT87Q443nmYxxXfcUr79I</string>
-    <string name="app_name">Parking_Application</string>
+    <string name="app_name">Parking Application</string>
     <string name="title_activity_map">MapActivity</string>
+    <string name="title_find_car">MapActivity</string>
     <string name="find_parking_now">Find Parking Now</string>
     <string name="search_hint">Enter address, City or Postal Code</string>
 </resources>
