@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class DataParser {
+public class DataParser extends Globals{
     private Marker mMarker;
     public DataParser(Marker marker){
         this.mMarker = marker;
@@ -94,6 +94,7 @@ public class DataParser {
     }
 
     private Double getDistanceFromLatLonInKm(Double lat1,Double lon1, Double lat2, Double lon2) {
+        String measurement = this.getMEASUREMENT();
         int R = 6371;
         Double dLat = deg2rad(lat2-lat1);
         Double dLon = deg2rad(lon2-lon1);
@@ -104,6 +105,9 @@ public class DataParser {
                 ;
         Double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         Double d = R * c;
+        if(measurement.equals("imperial")){
+            d = d *0.621371;
+        }
         return d;
     }
 

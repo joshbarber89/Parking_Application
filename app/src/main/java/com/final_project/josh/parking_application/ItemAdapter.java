@@ -17,10 +17,12 @@ import com.final_project.josh.parking_application.models.PlaceInfo;
 public class ItemAdapter extends ArrayAdapter {
 
     private ArrayList<PlaceInfo> objects;
+    private String measurement;
 
-    public ItemAdapter(Context context, int textViewResourceId, ArrayList<PlaceInfo> objects) {
+    public ItemAdapter(Context context, int textViewResourceId, ArrayList<PlaceInfo> objects, String measurement) {
         super(context, textViewResourceId, objects);
         this.objects = objects;
+        this.measurement = measurement;
     }
     @Override
     public View getView(int position, View convertView, ViewGroup parent){
@@ -49,7 +51,11 @@ public class ItemAdapter extends ArrayAdapter {
                 address.setText(p.getAddress());
             }
             if (distance != null){
-                distance.setText(Double.toString(round(p.getDistance(),2)));
+                String unit = "Mi";
+                if(measurement.equals("metric")){
+                    unit = "Km";
+                }
+                distance.setText(Double.toString(round(p.getDistance(),2))+" "+unit);
             }
         }
 

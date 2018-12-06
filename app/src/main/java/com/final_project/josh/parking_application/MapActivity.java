@@ -55,7 +55,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
+public class MapActivity extends Globals implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
 
     private static final String FINE_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION;
     private static final String COURSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
@@ -65,7 +65,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         new LatLng(-40,-168), new LatLng(71,136)
     );
     private static final int PLACE_PICKER_REQUEST = 1;
-    private final int PROXIMITY_RADIUS = 10000;
 
     private Boolean mLocationPermissionsGranted = false;
     private GoogleMap mMap;
@@ -85,7 +84,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     @Override
     protected void onResume() {
         super.onResume();
-        //mGoogleApiClient.connect();
     }
 
     @Override
@@ -99,9 +97,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         mSearchText = (AutoCompleteTextView) findViewById(R.id.input_search);
         mGps = (ImageView) findViewById(R.id.ic_gps);
+        parking = (ListView) findViewById(R.id.parking);
 
         getLocationPermission();
-
 
     }
 
@@ -162,11 +160,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         });
 
-        parking = (ListView) findViewById(R.id.parking);
 
-        parking_places_adapter = new ItemAdapter(MapActivity.this, R.layout.custom_info_window, parking_places);
-
-        parking_places_adapter.notifyDataSetChanged();
+        parking_places_adapter = new ItemAdapter(MapActivity.this, R.layout.custom_info_window, parking_places, getMEASUREMENT());
 
         parking.setAdapter(parking_places_adapter);
 
@@ -384,7 +379,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         StringBuilder googlePlaceUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
         googlePlaceUrl.append("location="+latitude+","+longitude);
-        googlePlaceUrl.append("&radius="+PROXIMITY_RADIUS);
+        googlePlaceUrl.append("&radius="+this.getPROXIMITY_RADIUS());
         googlePlaceUrl.append("&type="+nearbyPlace);
         googlePlaceUrl.append("&sensor=true");
         googlePlaceUrl.append("&key="+getResources().getString(R.string.google_maps_API_key));
