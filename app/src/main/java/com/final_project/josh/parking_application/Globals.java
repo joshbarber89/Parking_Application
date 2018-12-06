@@ -3,6 +3,7 @@ package com.final_project.josh.parking_application;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
 public class Globals extends AppCompatActivity  {
 
@@ -53,7 +54,19 @@ public class Globals extends AppCompatActivity  {
     public void setPARKING_LOCATION_LNG(double parking_lng){
         this.PARKING_LOCATION_LNG = parking_lng;
     }
+    @Override
+    public void onStart(){
+        super.onStart();
+        Log.i("Application Start:","starting the app");
+        double lat = getPARKING_LOCATION_LAT();
+        double lng = getPARKING_LOCATION_LNG();
 
+        //If lat and lng in database go to the intent and resolve from there.
 
+        if(lat > -1 && lng > -1){
+            Intent findCar = new Intent(Globals.this, FindCar.class);
+            startActivity(findCar);
+        }
+    }
 
 }

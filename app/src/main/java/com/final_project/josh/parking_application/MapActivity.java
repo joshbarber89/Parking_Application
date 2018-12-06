@@ -174,6 +174,7 @@ public class MapActivity extends Globals implements OnMapReadyCallback, GoogleAp
                 setPARKING_LOCATION_LAT(place.getLatlng().latitude);
                 setPARKING_LOCATION_LNG(place.getLatlng().longitude);
                 startNavigation(place.getLatlng());
+                finish();
             }
         });
 
@@ -410,26 +411,5 @@ public class MapActivity extends Globals implements OnMapReadyCallback, GoogleAp
 
     }
 
-    @Override
-    public void onStart(){
-        super.onStart();
-        double lat = getPARKING_LOCATION_LAT();
-        double lng = getPARKING_LOCATION_LNG();
-        if(lat > -1 && lng > -1){
-            Intent findCar = new Intent(MapActivity.this, FindCar.class);
-            startActivity(findCar);
-        }
-    }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        double lat = getPARKING_LOCATION_LAT();
-        double lng = getPARKING_LOCATION_LNG();
-        if(lat > -1 && lng > -1){
-            Intent findCar = new Intent(MapActivity.this, FindCar.class);
-            startActivity(findCar);
-        }
-
-    }
 }
