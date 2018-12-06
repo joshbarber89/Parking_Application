@@ -1,34 +1,34 @@
 package com.final_project.josh.parking_application;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.media.Image;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
-import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 
 import com.final_project.josh.parking_application.models.PlaceInfo;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
-import com.google.android.gms.common.GooglePlayServicesRepairableException;
-import com.google.android.gms.common.api.GoogleApi;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
@@ -54,29 +54,39 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String TAG = "MapActivity";
+public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
+
     private static final String FINE_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION;
     private static final String COURSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
     private static final float DEFAULT_ZOOM = 15f;
-    private static final int LOCATION_PERMISIONS_REQUEST_CODE = 1234;
+    private static final int LOCATION_PERMISSIONS_REQUEST_CODE = 1234;
     private static final LatLngBounds LAT_LNG_BOUNDS = new LatLngBounds(
         new LatLng(-40,-168), new LatLng(71,136)
     );
     private static final int PLACE_PICKER_REQUEST = 1;
+    private final int PROXIMITY_RADIUS = 10000;
 
     private Boolean mLocationPermissionsGranted = false;
     private GoogleMap mMap;
     private FusedLocationProviderClient mFusedLocationProvideClient;
 
-
     private AutoCompleteTextView mSearchText;
-    private ImageView mGps, mInfo, mPlacePicker;
+    private ImageView mGps;
+    private ListView parking;
     private PlaceAutoCompleteAdapter mPlaceAutoCompleteAdapter;
     private GoogleApiClient mGoogleApiClient;
     private PlaceInfo mPlace;
     private Marker mMarker;
+    private ArrayList<PlaceInfo> parking_places = new ArrayList<PlaceInfo>();
+
+    private ItemAdapter parking_places_adapter;
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //mGoogleApiClient.connect();
+    }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
@@ -89,35 +99,41 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         mSearchText = (AutoCompleteTextView) findViewById(R.id.input_search);
         mGps = (ImageView) findViewById(R.id.ic_gps);
-        mInfo = (ImageView) findViewById(R.id.place_info);
-        mPlacePicker = (ImageView) findViewById(R.id.place_picker);
 
         getLocationPermission();
+
+
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+
         if (mLocationPermissionsGranted) {
             getDeviceLocation();
-
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                     != PackageManager.PERMISSION_GRANTED
                     && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
                     != PackageManager.PERMISSION_GRANTED) {
                 return;
             }
-            mMap.setMyLocationEnabled(true);
             init();
+
         }
     }
     private void init(){
+
         mGoogleApiClient = new GoogleApiClient
                 .Builder(this)
                 .addApi(Places.GEO_DATA_API)
                 .addApi(Places.PLACE_DETECTION_API)
-                .enableAutoManage(this,this)
+                .addApi(LocationServices.API)
+                .enableAutoManage(this,0,this)
                 .build();
+        mGoogleApiClient.connect();
+
+        mMap.setPadding(0,100,0,0);
+
         mSearchText.setOnItemClickListener(mAutoCompleteClickListener);
 
         mPlaceAutoCompleteAdapter = new PlaceAutoCompleteAdapter(this, mGoogleApiClient, LAT_LNG_BOUNDS, null);
@@ -127,11 +143,14 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         mSearchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+
                 if(actionId == EditorInfo.IME_ACTION_SEARCH
                         || actionId == EditorInfo.IME_ACTION_DONE
                         || event.getAction() == KeyEvent.ACTION_DOWN
                         || event.getAction() == KeyEvent.KEYCODE_ENTER){
+                    mSearchText.dismissDropDown();
                     geoLocate();
+                    return true;
                 }
                 return false;
             }
@@ -142,38 +161,25 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                  getDeviceLocation();
             }
         });
-        mInfo.setOnClickListener(new View.OnClickListener() {
+
+        parking = (ListView) findViewById(R.id.parking);
+
+        parking_places_adapter = new ItemAdapter(MapActivity.this, R.layout.custom_info_window, parking_places);
+
+        parking_places_adapter.notifyDataSetChanged();
+
+        parking.setAdapter(parking_places_adapter);
+
+        parking.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onClick(View v) {
-                try{
-                    if(mMarker.isInfoWindowShown()){
-                        mMarker.hideInfoWindow();
-                    }
-                    else{
-                        mMarker.showInfoWindow();
-                    }
-                }catch(NullPointerException ex){}
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                PlaceInfo place = parking_places.get(position);
+                startNavigation(place.getLatlng());
             }
         });
 
-        mPlacePicker.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        hideSoftKeyboard(MapActivity.this);
 
-                PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
-
-                try {
-                    startActivityForResult(builder.build(MapActivity.this), PLACE_PICKER_REQUEST);
-                } catch (GooglePlayServicesRepairableException e) {
-                    e.printStackTrace();
-                } catch (GooglePlayServicesNotAvailableException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        });
-
-        hideSoftKeyboard();
     }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
@@ -192,7 +198,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         List<Address> list = new ArrayList<>();
         try{
             list = geocoder.getFromLocationName(searchString,1);
-
         }
         catch (IOException ex){}
         if(list.size()>0){
@@ -201,7 +206,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             mPlace.setName(address.getAddressLine(0));
             moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), DEFAULT_ZOOM,mPlace);
         }
-        hideSoftKeyboard();
+        hideSoftKeyboard(MapActivity.this);
     }
     private void getDeviceLocation(){
         mFusedLocationProvideClient = LocationServices.getFusedLocationProviderClient(this);
@@ -219,8 +224,17 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                             mPlace = new PlaceInfo();
                             mPlace.setName("My Location");
                             moveCamera(new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude()),DEFAULT_ZOOM, mPlace);
-                        }else{
-                            Toast.makeText(MapActivity.this,"Unable to get current location", Toast.LENGTH_SHORT).show();
+                        }else {
+                            Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+
+                            if (currentLocation != null) {
+                                mPlace = new PlaceInfo();
+                                mPlace.setName("My Location");
+                                moveCamera(new LatLng(currentLocation.getLatitude(),currentLocation.getLongitude()),DEFAULT_ZOOM, mPlace);
+                            } else {
+                                Toast.makeText(MapActivity.this, "Unable to get current location", Toast.LENGTH_SHORT).show();
+
+                            }
                         }
                     }
                 });
@@ -230,18 +244,17 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         }
     }
+
     private void moveCamera(LatLng latlng, float zoom, PlaceInfo placeInfo){
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latlng,zoom));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latlng,zoom));
         mMap.clear();
 
         mMap.setInfoWindowAdapter(new CustomInfoWindowAdapter(MapActivity.this));
 
         if(placeInfo != null) {
             try{
-                String snippet = "Address: " + placeInfo.getAddress() +"\n" +
-                        "Phone Number: " + placeInfo.getPhoneNumber() + "\n" +
-                        "Website: "+ placeInfo.getWebsiteURI() + "\n" +
-                        "Price Rating" + placeInfo.getRating() +"\n";
+                String snippet = (placeInfo.getAddress() != null) ? placeInfo.getAddress() : "";
+
                 MarkerOptions options = new MarkerOptions()
                         .position(latlng)
                         .title(placeInfo.getName())
@@ -249,13 +262,36 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 mMap.addMarker(options);
                 mMarker = mMap.addMarker(options);
 
+                Object dataTransfer[] = new Object[2];
+                GetNearbyPlaceData getNearbyPlacesData = new GetNearbyPlaceData(new AsyncResponse() {
+                    @Override
+                    public void processFinish(Object output) {
+                        parking_places.clear();
+                        parking_places.addAll((ArrayList<PlaceInfo>) output);
+
+                        parking_places_adapter.notifyDataSetChanged();
+                        mSearchText.setText("");
+                    }
+                    @Override
+                    public Marker getMarker(){
+                        return mMarker;
+                    }
+                });
+                String parking = "parking";
+                String url = getUrl(latlng.latitude, latlng.longitude, parking);
+                dataTransfer[0] = mMap;
+                dataTransfer[1] = url;
+
+                getNearbyPlacesData.execute(dataTransfer);
+
             }catch (NullPointerException ex){}
+            catch (Exception ex){}
 
         }
         else{
             mMap.addMarker(new MarkerOptions().position(latlng));
         }
-        hideSoftKeyboard();
+        hideSoftKeyboard(MapActivity.this);
     }
     private void initMap(){
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -270,11 +306,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                initMap();
            }
            else{
-               ActivityCompat.requestPermissions(this,permissions,LOCATION_PERMISIONS_REQUEST_CODE);
+               ActivityCompat.requestPermissions(this,permissions,LOCATION_PERMISSIONS_REQUEST_CODE);
            }
        }
        else{
-           ActivityCompat.requestPermissions(this,permissions,LOCATION_PERMISIONS_REQUEST_CODE);
+           ActivityCompat.requestPermissions(this,permissions,LOCATION_PERMISSIONS_REQUEST_CODE);
        }
 
     }
@@ -283,7 +319,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         mLocationPermissionsGranted = false;
 
         switch(requestCode){
-            case LOCATION_PERMISIONS_REQUEST_CODE:{
+            case LOCATION_PERMISSIONS_REQUEST_CODE:{
                 if(grantResults.length > 0){
                     for(int i = 0; i <grantResults.length; i++){
                         if(grantResults[i] != PackageManager.PERMISSION_GRANTED){
@@ -297,14 +333,19 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         }
     }
-    private void hideSoftKeyboard(){
-        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+    private void hideSoftKeyboard(Activity activity){
+        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        View view = activity.getCurrentFocus();
+        if (view == null) {
+            view = new View(activity);
+        }
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
     private AdapterView.OnItemClickListener mAutoCompleteClickListener = new AdapterView.OnItemClickListener() {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            hideSoftKeyboard();
+            hideSoftKeyboard(MapActivity.this);
             final AutocompletePrediction item = mPlaceAutoCompleteAdapter.getItem(position);
             final String placeID = item.getPlaceId();
 
@@ -325,7 +366,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 mPlace = new PlaceInfo();
                 mPlace.setName(place.getName().toString());
                 mPlace.setAddress(place.getAddress().toString());
-                //mPlace.setAttributions(place.getAttributions().toString());
+                mPlace.setAttributions(place.getAttributions().toString());
                 mPlace.setId(place.getAddress().toString());
                 mPlace.setLatlng(place.getLatLng());
                 mPlace.setPhoneNumber(place.getPhoneNumber().toString());
@@ -338,7 +379,35 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             moveCamera(new LatLng(place.getViewport().getCenter().latitude, place.getViewport().getCenter().longitude),DEFAULT_ZOOM,mPlace);
         }
     };
+    private String getUrl(double latitude , double longitude , String nearbyPlace)
+    {
+
+        StringBuilder googlePlaceUrl = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
+        googlePlaceUrl.append("location="+latitude+","+longitude);
+        googlePlaceUrl.append("&radius="+PROXIMITY_RADIUS);
+        googlePlaceUrl.append("&type="+nearbyPlace);
+        googlePlaceUrl.append("&sensor=true");
+        googlePlaceUrl.append("&key="+getResources().getString(R.string.google_maps_API_key));
+
+        Log.d("MapsActivity", "url = "+googlePlaceUrl.toString());
+
+        return googlePlaceUrl.toString();
+    }
+
+    private void startNavigation(LatLng latlng){
+        Uri gmmIntentUri = Uri.parse("google.navigation:q="+latlng.latitude+","+latlng.longitude);
+        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+        mapIntent.setPackage("com.google.android.apps.maps");
+        startActivity(mapIntent);
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
 }
-
-
-//https://www.youtube.com/watch?v=6Trdd9EnmqY&index=8&list=PLgCYzUzKIBE-vInwQhGSdnbyJ62nixHCt

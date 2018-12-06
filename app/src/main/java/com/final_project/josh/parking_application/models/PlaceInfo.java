@@ -11,8 +11,9 @@ public class PlaceInfo {
     private LatLng latlng;
     private float rating;
     private String attributions;
+    private Double distance;
 
-    public PlaceInfo(String name, String address, String phoneNumber,String id, String websiteURI, LatLng latlng, float rating, String attributions) {
+    public PlaceInfo(String name, String address, String phoneNumber,String id, String websiteURI, LatLng latlng, float rating, String attributions, Double distance) {
         this.name = name;
         this.address = address;
         this.phoneNumber = phoneNumber;
@@ -21,9 +22,17 @@ public class PlaceInfo {
         this.latlng = latlng;
         this.rating = rating;
         this.attributions = attributions;
+        this.distance = distance;
     }
     public PlaceInfo(){
 
+    }
+    public Double getDistance() {
+        return distance;
+    }
+
+    public void setDistance(Double distance) {
+        this.distance = distance;
     }
 
     public String getName() {
