@@ -28,10 +28,18 @@ public class MainActivity extends Globals {
     }
     private void init(){
         Button findParking = findViewById(R.id.findParking);
+        Button settings = findViewById(R.id.settings);
         findParking.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, MapActivity.class);
+                startActivity(intent);
+            }
+        });
+        settings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
                 startActivity(intent);
             }
         });
