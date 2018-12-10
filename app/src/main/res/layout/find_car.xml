@@ -1,9 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
     <TextView
+        android:id="@+id/header"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="hi"/>
-</android.support.constraint.ConstraintLayout>
+        android:layout_height="wrap_content"
+        android:background="@color/blue"
+        android:gravity="center_vertical"
+        android:text="@string/title_find_car"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:textSize="40sp"
+        android:textStyle="bold" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center">
+        <Button
+            android:id="@+id/find_car"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_find_car"
+            android:layout_marginBottom="20dp"/>
+        <Button
+            android:id="@+id/found_car"
+            android:layout_width="150dp"
+            android:text="@string/btn_found_car"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+</LinearLayout>

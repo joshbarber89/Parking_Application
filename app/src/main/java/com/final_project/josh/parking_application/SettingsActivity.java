@@ -11,20 +11,19 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.final_project.josh.parking_application.models.User_Settings;
+
 public class SettingsActivity extends AppCompatActivity {
 
     private static SeekBar seekBar;
     private static TextView sr;
-    private static Switch switcher;
-    private static TextView metric;
-    private static TextView imperial;
-    private static TextView longans;
-    private static TextView latans;
+    private static Switch measurement_switch;
+    private static TextView mesurement_text;
     private static Button save;
     private static Button exit;
-    private static TextView autoon;
-    private static TextView autooff;
+    private static TextView auto_select_bool;
     private static Switch autoswitch;
+
     private static DatabaseBuilder settingsdb;
 
     private static String storemori;
@@ -38,76 +37,69 @@ public class SettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
+        settingsdb = new DatabaseBuilder(this);
+
+        User_Settings user_settings = settingsdb.getData();
+
+        //Measurement Switch
+        measurement_switch = (Switch)findViewById(R.id.switchmori);
+        mesurement_text = (TextView)findViewById(R.id.mesurement_text);
+
+        //Proximity
         seekBar = (SeekBar)findViewById(R.id.seekBar);
         sr = (TextView)findViewById(R.id.sr);
-        switcher = (Switch)findViewById(R.id.switchmori);
-        metric = (TextView)findViewById(R.id.metric);
-        imperial = (TextView)findViewById(R.id.imperial);
-        sr.setText("Search Radius Proximity: ");
-        imperial.setVisibility(TextView.INVISIBLE);
-        longans = (TextView)findViewById(R.id.longans);
-        latans = (TextView)findViewById(R.id.latans);
+
+        //Auto Select
+        auto_select_bool = (TextView)findViewById(R.id.auto_select_bool);
+        autoswitch = (Switch)findViewById(R.id.switchauto);
+
+        //longans = (TextView)findViewById(R.id.longans);
+        //latans = (TextView)findViewById(R.id.latans);
+
+        //Save or Exit
         save = (Button)findViewById(R.id.save);
         exit = (Button)findViewById(R.id.exit);
-        autoon = (TextView)findViewById(R.id.autoon);
-        autooff = (TextView)findViewById(R.id.autooff);
-        autoon.setVisibility(TextView.INVISIBLE);
-        autoswitch = (Switch)findViewById(R.id.switchauto);
-        settingsdb = new DatabaseBuilder(this);
+
+
 
         storemori = "FALSE";
         storeauto = "FALSE";
         storerange = "";
-        storelong = "";
-        storelat = "";
+        storelong = "-1";
+        storelat = "-1";
 
+        if(!user_settings.getMori().equals("") && user_settings.getMori().equals("TRUE")) {
+            mesurement_text.setText(getResources().getText(R.string.imperial));
+            measurement_switch.setChecked(true);
+            storemori = user_settings.getMori();
+        }
 
-        exit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(SettingsActivity.this, MainActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        autoswitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        //Measurement Switch
+        measurement_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked){
-                    autoon.setVisibility(TextView.VISIBLE);
-                    autooff.setVisibility(TextView.INVISIBLE);
-                    storeauto = "TRUE";
-                }
-                else{
-                    autoon.setVisibility(TextView.INVISIBLE);
-                    autooff.setVisibility(TextView.VISIBLE);
-                    storeauto = "FALSE";
-                }
-            }
-        });
-
-        switcher.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked){
-                    imperial.setVisibility(TextView.VISIBLE);
-                    metric.setVisibility(TextView.INVISIBLE);
+                    mesurement_text.setText(getResources().getText(R.string.imperial));
                     storemori = "TRUE";
                 }
                 else {
-                    imperial.setVisibility(TextView.INVISIBLE);
-                    metric.setVisibility(TextView.VISIBLE);
+                    mesurement_text.setText(getResources().getText(R.string.metric));
                     storemori = "FALSE";
                 }
             }
         });
-
+        if(!user_settings.getRadius().equals("") && Integer.parseInt(user_settings.getRadius()) > 0) {
+            seekBar.setProgress(Integer.parseInt(user_settings.getRadius()));
+            sr.setText(getResources().getText(R.string.seek_proximity) +": "+ user_settings.getRadius()+" km/mi");
+            storerange = user_settings.getRadius();
+        }
+        //Proximity
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             int progressvalue;
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 progressvalue = progress;
-                sr.setText("Search Radius Proximity: " + progressvalue);
+                sr.setText(getResources().getText(R.string.seek_proximity) +": "+ Integer.toString(progressvalue)+" km/mi");
                 storerange = String.valueOf(progressvalue);
             }
 
@@ -118,27 +110,56 @@ public class SettingsActivity extends AppCompatActivity {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                sr.setText("Search Radius Proximity: " + progressvalue);
+                sr.setText(getResources().getText(R.string.seek_proximity) +": "+ Integer.toString(progressvalue)+"km/mi");
                 storerange = String.valueOf(progressvalue);
+            }
+        });
+
+        if(!user_settings.getAuto().equals("") && user_settings.getAuto().equals("TRUE")){
+            autoswitch.setChecked(true);
+            auto_select_bool.setText(getResources().getText(R.string.on));
+            storeauto = user_settings.getAuto();
+        }
+        //Auto Select
+        autoswitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked){
+                    auto_select_bool.setText(getResources().getText(R.string.on));
+                    storeauto = "TRUE";
+                }
+                else{
+                    auto_select_bool.setText(getResources().getText(R.string.off));
+                    storeauto = "FALSE";
+                }
             }
         });
 
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                storelat = String.valueOf(latans.getText());
-                storelong = String.valueOf(longans.getText());
+                storelat = String.valueOf(storelat);
+                storelong = String.valueOf(storelong);
 
-                boolean insertData = settingsdb.addData(storemori, storerange, storelong, storelat, storeauto);
+                boolean insertData = settingsdb.updateData(storemori, storerange, storelong, storelat, storeauto);
 
                 if (insertData == true){
                     Toast.makeText(SettingsActivity.this, "DATA SUCCESSFULLY STORED!", Toast.LENGTH_LONG).show();
+                    Intent intent = new Intent(SettingsActivity.this, MainActivity.class);
+                    startActivity(intent);
                 }
                 else {
                     Toast.makeText(SettingsActivity.this, "ERROR! NOT SAVED.", Toast.LENGTH_LONG).show();
                 }
 
 
+            }
+        });
+        exit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(SettingsActivity.this, MainActivity.class);
+                startActivity(intent);
             }
         });
 

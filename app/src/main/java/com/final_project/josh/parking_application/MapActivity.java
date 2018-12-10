@@ -27,6 +27,7 @@ import android.widget.Toast;
 
 
 import com.final_project.josh.parking_application.models.PlaceInfo;
+import com.final_project.josh.parking_application.models.User_Settings;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -173,6 +174,7 @@ public class MapActivity extends Globals implements OnMapReadyCallback, GoogleAp
                 PlaceInfo place = parking_places.get(position);
                 setPARKING_LOCATION_LAT(place.getLatlng().latitude);
                 setPARKING_LOCATION_LNG(place.getLatlng().longitude);
+                saveCarLocation(place.getLatlng());
                 startNavigation(place.getLatlng());
                 finish();
             }
@@ -268,7 +270,11 @@ public class MapActivity extends Globals implements OnMapReadyCallback, GoogleAp
                     public void processFinish(Object output) {
                         parking_places.clear();
                         parking_places.addAll((ArrayList<PlaceInfo>) output);
-
+                        if(getAUTO_SELECT() && parking_places.size() > 0){
+                            saveCarLocation(parking_places.get(0).getLatlng());
+                            startNavigation(parking_places.get(0).getLatlng());
+                            finish();
+                        }
                         parking_places_adapter.notifyDataSetChanged();
                         mSearchText.setText("");
                     }
@@ -408,6 +414,15 @@ public class MapActivity extends Globals implements OnMapReadyCallback, GoogleAp
 
     @Override
     public void onConnectionSuspended(int i) {
+
+    }
+
+    private void saveCarLocation(LatLng latLng){
+        User_Settings us = new User_Settings();
+        us = us.getSettingValues(this);
+        us.setLongitude(Double.toString(latLng.longitude));
+        us.setLatitude(Double.toString(latLng.latitude));
+        us.updateSettingValues(this);
 
     }
 

@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.final_project.josh.parking_application.models.User_Settings;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 
@@ -29,6 +30,16 @@ public class MainActivity extends Globals {
     private void init(){
         Button findParking = findViewById(R.id.findParking);
         Button settings = findViewById(R.id.settings);
+        User_Settings us = new User_Settings();
+        if(us.checkIfDefaultValuesNeeded(this)){
+            us.setDefaultValues(this);
+            setSettings(us);
+        }
+        else{
+            us = us.getSettingValues(this);
+            setSettings(us);
+        }
+
 
         findParking.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -44,7 +55,6 @@ public class MainActivity extends Globals {
                 startActivity(intent);
             }
         });
-
     }
     public boolean isServicesOK(){
         Log.d(TAG,"isServicesOK: checking google services version");
@@ -60,5 +70,36 @@ public class MainActivity extends Globals {
             Toast.makeText(this,"You can't make map requests", Toast.LENGTH_SHORT).show();
         }
         return false;
+    }
+    private void setSettings(User_Settings us){
+        if(us.getAuto().equals("TRUE")) {
+            setAUTO_SELECT(true);
+        }else{
+            setAUTO_SELECT(false);
+        }
+        if(us.getMori().equals("TRUE")){
+            setMEASUREMENT("imperial");
+        }
+        else{
+            setMEASUREMENT("metric");
+        }
+        if(!us.getRadius().equals("") && Integer.parseInt(us.getRadius()) >= 0){
+            setPROXIMITY_RADIUS(Integer.parseInt(us.getRadius()));
+        }
+        else{
+            setPROXIMITY_RADIUS(10);
+        }
+        if(!us.getLatitude().equals("") && Double.parseDouble(us.getLatitude()) != -1){
+            setPARKING_LOCATION_LAT(Double.parseDouble(us.getLatitude()));
+        }
+        else{
+            setPARKING_LOCATION_LAT(-1);
+        }
+        if(!us.getLongitude().equals("") && Double.parseDouble(us.getLongitude()) != -1){
+            setPARKING_LOCATION_LNG(Double.parseDouble(us.getLongitude()));
+        }
+        else{
+            setPARKING_LOCATION_LNG(-1);
+        }
     }
 }

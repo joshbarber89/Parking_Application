@@ -2,8 +2,11 @@ package com.final_project.josh.parking_application;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import com.final_project.josh.parking_application.models.User_Settings;
 
 public class DatabaseBuilder extends SQLiteOpenHelper {
 
@@ -32,7 +35,7 @@ public class DatabaseBuilder extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public boolean addData (String mori, String radius, String longitude, String latitude,String auto){
+    public boolean updateData(String mori, String radius, String longitude, String latitude,String auto){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(COL2,mori);
@@ -41,7 +44,15 @@ public class DatabaseBuilder extends SQLiteOpenHelper {
         contentValues.put(COL5,latitude);
         contentValues.put(COL6,auto);
 
-        long result = db.insert(TABLENAME,null,contentValues);
+        long result = -1;
+
+        Cursor cursor = db.rawQuery("SELECT * FROM "+TABLENAME+" ORDER BY "+COL1+" DESC LIMIT 1",null);
+        if(cursor.moveToFirst()) {
+            result = db.update(TABLENAME,contentValues,COL1+"=?",new String[]{cursor.getString(cursor.getColumnIndex("ID"))});
+        }
+        else{
+            result = db.insert(TABLENAME,null,contentValues);
+        }
 
         if(result == -1){
             return false;
@@ -49,7 +60,29 @@ public class DatabaseBuilder extends SQLiteOpenHelper {
         else {
             return true;
         }
-
     }
+
+    public User_Settings getData () {
+        User_Settings user = new User_Settings();
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM "+TABLENAME+" ORDER BY "+COL1+" DESC LIMIT 1",null);
+        if(cursor.moveToFirst()){
+            String mori= cursor.getString(cursor.getColumnIndex("MORI"));
+            String radius= cursor.getString(cursor.getColumnIndex("RADIUS"));
+            String longitude= cursor.getString(cursor.getColumnIndex("LONGITUDE"));
+            String latitude= cursor.getString(cursor.getColumnIndex("LATITUDE"));
+            String auto= cursor.getString(cursor.getColumnIndex("AUTO"));
+            user.setMori(mori);
+            user.setRadius(radius);
+            user.setLongitude(longitude);
+            user.setLatitude(latitude);
+            user.setAuto(auto);
+        }else{
+            return null;
+        }
+
+        return user;
+    }
+
 
 }

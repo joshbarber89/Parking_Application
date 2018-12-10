@@ -8,9 +8,9 @@ import android.util.Log;
 public class Globals extends AppCompatActivity  {
 
 
-    private String MEASUREMENT = "metric";
-    private int PROXIMITY_RADIUS = 10000;
-    private boolean AUTO_SELECT = false;
+    private static String MEASUREMENT = "metric";
+    private static int PROXIMITY_RADIUS = 10000;
+    private static boolean AUTO_SELECT = false;
     private static double PARKING_LOCATION_LAT = -1;
     private static double PARKING_LOCATION_LNG = -1;
 
@@ -40,7 +40,12 @@ public class Globals extends AppCompatActivity  {
     }
 
     public void setPROXIMITY_RADIUS(int radius){
-        this.PROXIMITY_RADIUS = radius;
+        if(getMEASUREMENT().equals("metric")) {
+            this.PROXIMITY_RADIUS = (radius * 1000);
+        }
+        else{
+            this.PROXIMITY_RADIUS = (int)Math.round(radius * 1000 * 1.60934);
+        }
     }
 
     public void setAUTO_SELECT(boolean auto_select){
@@ -63,7 +68,7 @@ public class Globals extends AppCompatActivity  {
 
         //If lat and lng in database go to the intent and resolve from there.
 
-        if(lat > -1 && lng > -1){
+        if(lat != -1 && lng != -1){
             Intent findCar = new Intent(Globals.this, FindCar.class);
             startActivity(findCar);
         }
