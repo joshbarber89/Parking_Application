@@ -29,6 +29,7 @@ public class MainActivity extends Globals {
     private void init(){
         Button findParking = findViewById(R.id.findParking);
         Button settings = findViewById(R.id.settings);
+
         findParking.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -43,6 +44,7 @@ public class MainActivity extends Globals {
                 startActivity(intent);
             }
         });
+
     }
     public boolean isServicesOK(){
         Log.d(TAG,"isServicesOK: checking google services version");
